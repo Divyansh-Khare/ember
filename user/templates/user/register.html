@@ -1,0 +1,282 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ember — Legal Document Management System</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'user/icon/logo.svg' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'user/css/register.css' %}">
+</head>
+
+<body>
+
+    <!-- ============ TOP BAR ============ -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="seal"><img src="{% static 'user/icon/logo.svg' %}" alt="Ember logo"></div>
+            <div>
+                <div class="brand-name">EMBER</div>
+            </div>
+        </div>
+        <div class="conn-status"><span class="conn-dot"></span> encrypted session · TLS 1.3</div>
+    </header>
+
+    <div class="frame">
+
+        <!-- ============ LEFT STEP RAIL ============ -->
+        <nav class="rail">
+            <div class="rail-title">Registration steps</div>
+
+            <div class="step" data-rail-step="1">
+                <span class="num">01</span> <span class="label">Identity verification</span>
+                <div class="desc">Email &amp; access check</div>
+            </div>
+            <div class="step" data-rail-step="2">
+                <span class="num">02</span> <span class="label">Personal details</span>
+                <div class="desc">Contact &amp; government ID</div>
+            </div>
+            <div class="step" data-rail-step="3">
+                <span class="num">03</span> <span class="label">Role assignment</span>
+                <div class="desc">Scope of access</div>
+            </div>
+            <div class="step" data-rail-step="4">
+                <span class="num">04</span> <span class="label">Confirmation</span>
+                <div class="desc">Issued credentials</div>
+            </div>
+
+            <!-- <div class="rail-footer">
+        <p>All entries are logged and cross‑checked against the national registry. Misrepresentation of identity or role is a punishable offence under document custody law.</p>
+      </div> -->
+        </nav>
+
+        <!-- ============ MAIN PANEL ============ -->
+        {% csrf_token %}
+        <main class="panel">
+
+            <!-- ===== STEP 1: IDENTITY VERIFICATION ===== -->
+            <section class="step-view active" data-step="1">
+                <div class="panel-head">
+                    <div class="eyebrow">Step 01</div>
+                    <h1>Verify your identity</h1>
+                    <p>Enter your official email address to receive a one-time passcode. This confirms the request
+                        originates from
+                        an authorized account.</p>
+                </div>
+
+                <div class="field" id="f-email">
+                    <label for="email">Official email address</label>
+                    <input type="email" id="email" placeholder="name@judiciary.gov">
+                    <div class="error-msg">Enter a valid email address to continue.</div>
+                </div>
+
+                <!-- OTP: three mutually-exclusive states, toggled via the hidden attribute -->
+                <div id="otp-not-sent">
+                    <div class="field">
+                        <button type="button" class="btn btn-ghost" id="send-otp" style="width:100%;">Send verification
+                            code</button>
+                    </div>
+                </div>
+
+                <div id="otp-pending" hidden>
+                    <div class="otp-block">
+                        <div class="otp-sent-msg">
+                            A 6-digit code was sent to <strong id="otp-target-email"></strong>.<br>
+                            <!-- <span class="dim">Demo mode — code: <strong id="otp-demo-code"></strong></span> -->
+                        </div>
+                        <div class="field" id="f-otp" style="margin-bottom:0;">
+                            <label for="otp">Enter code</label>
+                            <input type="text" id="otp" placeholder="6-digit code" maxlength="6" inputmode="numeric">
+                            <div class="error-msg" id="otp-msg"></div>
+                        </div>
+                        <div class="otp-links">
+                            <button type="button" id="verify-otp">Verify code</button>
+                            <button type="button" id="resend-otp">Resend code</button>
+                            <button type="button" id="change-email">Change email</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="otp-verified" hidden>
+                    <div class="verified-badge">✓ Email verified</div>
+                </div>
+
+                <div class="field" id="f-captcha">
+                    <label>Security check</label>
+                    <div class="captcha-row">
+                        <div class="captcha-box"><span id="captcha-a"></span> + <span id="captcha-b"></span> = ?</div>
+                        <button type="button" class="captcha-refresh" id="captcha-refresh"
+                            title="New challenge">↻</button>
+                        <input type="text" id="captcha-input" placeholder="Answer" style="max-width:110px;"
+                            inputmode="numeric">
+                    </div>
+                    <div class="error-msg">Incorrect answer — try the new challenge.</div>
+                </div>
+
+                <div class="actions">
+                    <span class="session-tag-label">Session ID: <span class="session-tag"
+                            id="session-tag"></span></span>
+                    <button type="button" class="btn btn-primary" id="step1-next">Continue</button>
+                </div>
+            </section>
+
+            <!-- ===== STEP 2: PERSONAL DETAILS ===== -->
+            <section class="step-view" data-step="2">
+                <div class="panel-head">
+                    <div class="eyebrow">Step 02</div>
+                    <h1>Personal &amp; identification details</h1>
+                    <p>These details will appear on your credential and are matched against the government ID you
+                        provide.</p>
+                </div>
+
+                <div class="field" id="f-name">
+                    <label for="name">Full legal name</label>
+                    <input type="text" id="name" placeholder="As shown on government ID">
+                    <div class="error-msg">Full name is required.</div>
+                </div>
+
+                <div class="row2">
+                    <div class="field" id="f-phone">
+                        <label for="phone">Phone number</label>
+                        <input type="tel" id="phone" placeholder="+91 00000 00000">
+                        <div class="error-msg">Enter a valid phone number.</div>
+                    </div>
+                    <div class="field" id="f-idtype">
+                        <label for="idtype">Government-issued ID type</label>
+                        <select id="idtype">
+                            <option value="">Select ID type</option>
+                            <option value="National ID / Aadhaar">National ID / Aadhaar</option>
+                            <option value="Passport">Passport</option>
+                            <option value="Driving License">Driving License</option>
+                            <option value="Voter ID">Voter ID</option>
+                        </select>
+                        <div class="error-msg">Select an ID type.</div>
+                    </div>
+                </div>
+
+                <div class="field" id="f-idnum">
+                    <label for="idnum">ID number</label>
+                    <input type="text" id="idnum" placeholder="Enter the ID number">
+                    <div class="hint">Stored encrypted. Only the last 4 digits are shown on your credential.</div>
+                    <div class="error-msg">ID number is required.</div>
+                </div>
+
+                <div class="actions">
+                    <button type="button" class="btn btn-ghost" id="step2-back">Back</button>
+                    <button type="button" class="btn btn-primary" id="step2-next">Continue</button>
+                </div>
+            </section>
+
+            <!-- ===== STEP 3: ROLE ASSIGNMENT ===== -->
+            <section class="step-view" data-step="3">
+                <div class="panel-head">
+                    <div class="eyebrow">Step 03</div>
+                    <h1>Select your role</h1>
+                    <p>Your role determines which case files, evidence records, and filings you are authorized to
+                        access.</p>
+                </div>
+
+                <div class="field" id="f-role">
+                    <div class="role-grid">
+                        <div class="role-card" data-role="lawyer">
+                            <div class="rtitle">Lawyer</div>
+                        </div>
+                        <div class="role-card" data-role="police_officer">
+                            <div class="rtitle">Police Officer/Field Officer</div>
+                        </div>
+                        <div class="role-card" data-role="court_official">
+                            <div class="rtitle">Judge/Court Official</div>
+                        </div>
+                        <div class="role-card" data-role="investigating_officer">
+                            <div class="rtitle">Investigating Officer</div>
+                        </div>
+                        <div class="role-card" data-role="forensic_expert">
+                            <div class="rtitle">Forensic Expert/Lab Personnel</div>
+                        </div>
+                        <div class="role-card" data-role="legal_officer">
+                            <div class="rtitle">Legal Officer</div>
+                        </div>
+                        <div class="role-card" data-role="station_house_officer">
+                            <div class="rtitle">Station House Officer</div>
+                        </div>
+                    </div>
+                    <div class="error-msg">Select a role to continue.</div>
+                </div>
+
+                <div class="actions">
+                    <button type="button" class="btn btn-ghost" id="step3-back">Back</button>
+                    <button type="button" class="btn btn-primary" id="step3-next">Review &amp; confirm</button>
+                </div>
+            </section>
+
+            <!-- ===== STEP 4: CONFIRMATION / ID CARD ===== -->
+            <section class="step-view" data-step="4">
+                <div class="panel-head">
+                    <div class="eyebrow">Step 04</div>
+                    <h1>Registration confirmed</h1>
+                    <p>Your credential has been generated below. Verify every field is correct before submitting for
+                        approval.</p>
+                </div>
+
+                <div class="id-wrap">
+                    <div class="id-card">
+                        <div class="id-top">
+                            <div class="org"><img src="{% static 'user/icon/logo.svg' %}" alt="Ember logo"> Ember <span
+                                    class="dim">LDMS</span>
+                            </div>
+                            <div class="status">Pending review</div>
+                        </div>
+                        <div class="id-body">
+                            <div class="id-avatar" id="id-initials"></div>
+                            <div class="id-info">
+                                <h2 id="id-name"></h2>
+                                <div class="role-line" id="id-role"></div>
+                                <div class="id-meta">
+                                    <div>
+                                        <div class="k">Email</div>
+                                        <div class="v" id="id-email"></div>
+                                    </div>
+                                    <div>
+                                        <div class="k">Phone</div>
+                                        <div class="v" id="id-phone"></div>
+                                    </div>
+                                    <div>
+                                        <div class="k" id="id-idtype-label">ID</div>
+                                        <div class="v" id="id-idnum"></div>
+                                    </div>
+                                    <div>
+                                        <div class="k">Issued</div>
+                                        <div class="v" id="id-issued"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="id-bottom">
+                            <div class="id-number" id="id-number"></div>
+                            <div class="qr" id="id-qr"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-note">This credential is not active until an administrator approves the
+                    request.<br>You will
+                    be notified at the email address above.</div>
+
+                <div class="actions">
+                    <button type="button" class="btn btn-ghost" id="step4-back">Back</button>
+                    <button type="button" class="btn btn-primary" id="step4-submit">Submit for approval</button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="{% static 'user/js/register.js' %}"></script>
+</body>
+
+</html>
